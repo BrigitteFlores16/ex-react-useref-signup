@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 const RegistrationForm = () => {
   const fullNameRef = useRef(null);
@@ -13,6 +13,10 @@ const RegistrationForm = () => {
 
   const [errors, setErrors] = useState({});
   const [validStates, setValidStates] = useState({});
+
+  useEffect(() => {
+    fullNameRef.current.focus();
+  }, []);
 
   const validateField = (name, value) => {
     let error = "";
@@ -50,6 +54,17 @@ const RegistrationForm = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     validateField(name, value);
+    console.log(` Campo aggiornato: ${name}, Valore: ${value}`);
+  };
+
+  const handleReset = () => {
+    setFormData({ username: "", password: "", description: "" });
+    fullNameRef.current.value = "";
+    specializationRef.current.value = "";
+    experienceYearsRef.current.value = "";
+    setErrors({});
+    setValidStates({});
+    console.log(" Form resettato!");
   };
 
   const handleSubmit = (e) => {
@@ -60,7 +75,11 @@ const RegistrationForm = () => {
       experienceYears: experienceYearsRef.current.value,
       ...formData,
     };
-    console.log("Dati inviati:", finalData);
+    console.log(" Dati inviati:", finalData);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -142,10 +161,28 @@ const RegistrationForm = () => {
           )}
         </div>
 
+        <button
+          type="button"
+          className="btn btn-secondary me-2"
+          onClick={handleReset}
+        >
+          Reset
+        </button>
+
         <button type="submit" className="btn btn-primary">
           Registrati
         </button>
       </form>
+
+      <button
+        className="btn btn-light position-fixed bottom-0 end-0 m-3 d-flex align-items-center gap-2"
+        onClick={scrollToTop}
+      >
+        Torna su
+        <i className="material-icons" style={{ marginBottom: "2px" }}>
+          arrow_upward
+        </i>
+      </button>
     </div>
   );
 };

@@ -1,45 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 const RegistrationForm = () => {
+  const fullNameRef = useRef(null);
+  const specializationRef = useRef(null);
+  const experienceYearsRef = useRef(null);
+
   const [formData, setFormData] = useState({
-    fullName: "",
     username: "",
     password: "",
-    specialization: "",
-    experienceYears: "",
     description: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [validStates, setValidStates] = useState({});
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const validateField = (name, value) => {
+    let error = "";
+    let valid = false;
+
+    if (name === "username") {
+      const usernameRegex = /^[a-zA-Z0-9]{6,}$/;
+      valid = usernameRegex.test(value);
+      error = valid
+        ? ""
+        : "Lo username deve essere almeno 6 caratteri alfanumerici senza spazi.";
+    }
+
+    if (name === "password") {
+      const passwordRegex =
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      valid = passwordRegex.test(value);
+      error = valid
+        ? ""
+        : "La password deve avere almeno 8 caratteri, includere una lettera, un numero e un simbolo.";
+    }
+
+    if (name === "description") {
+      valid = value.trim().length >= 100 && value.trim().length <= 1000;
+      error = valid
+        ? ""
+        : "La descrizione deve contenere tra 100 e 1000 caratteri.";
+    }
+
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+    setValidStates((prevValid) => ({ ...prevValid, [name]: valid }));
   };
 
-  const validateForm = () => {
-    let newErrors = {};
-
-    if (!formData.fullName)
-      newErrors.fullName = "Il nome completo è obbligatorio.";
-    if (!formData.username) newErrors.username = "Lo username è obbligatorio.";
-    if (!formData.password) newErrors.password = "La password è obbligatoria.";
-    if (!formData.specialization)
-      newErrors.specialization = "La specializzazione è obbligatoria.";
-    if (!formData.experienceYears || formData.experienceYears <= 0)
-      newErrors.experienceYears =
-        "Gli anni di esperienza devono essere un numero positivo.";
-    if (!formData.description)
-      newErrors.description = "La descrizione è obbligatoria.";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    validateField(name, value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Dati del form:", formData);
-    }
+    const finalData = {
+      fullName: fullNameRef.current.value,
+      specialization: specializationRef.current.value,
+      experienceYears: experienceYearsRef.current.value,
+      ...formData,
+    };
+    console.log("Dati inviati:", finalData);
   };
 
   return (
@@ -48,16 +69,27 @@ const RegistrationForm = () => {
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label">Nome completo:</label>
+          <input type="text" className="form-control" ref={fullNameRef} />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Specializzazione:</label>
+          <select className="form-select" ref={specializationRef}>
+            <option value="">--Seleziona--</option>
+            <option value="Full Stack">Full Stack</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Anni di esperienza:</label>
           <input
-            type="text"
+            type="number"
             className="form-control"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
+            ref={experienceYearsRef}
+            min="0"
           />
-          {errors.fullName && (
-            <div className="text-danger">{errors.fullName}</div>
-          )}
         </div>
 
         <div className="mb-3">
@@ -71,6 +103,9 @@ const RegistrationForm = () => {
           />
           {errors.username && (
             <div className="text-danger">{errors.username}</div>
+          )}
+          {validStates.username && (
+            <div className="text-success">Username valido!</div>
           )}
         </div>
 
@@ -86,43 +121,8 @@ const RegistrationForm = () => {
           {errors.password && (
             <div className="text-danger">{errors.password}</div>
           )}
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Specializzazione:</label>
-          <select
-            className="form-select"
-            name="specialization"
-            value={formData.specialization}
-            onChange={handleChange}
-          >
-            <option value="">--Seleziona--</option>
-            <option value="Full Stack">Full Stack</option>
-            <option value="Frontend">Frontend</option>
-            <option value="Backend">Backend</option>
-          </select>
-          {errors.specialization && (
-            <div className="text-danger">{errors.specialization}</div>
-          )}
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Anni di esperienza:</label>
-          <input
-            type="number"
-            className="form-control"
-            name="experienceYears"
-            value={formData.experienceYears}
-            onChange={handleChange}
-            min="0"
-            onKeyDown={(e) => {
-              if (e.key === "-" || e.key === "e") {
-                e.preventDefault();
-              }
-            }}
-          />
-          {errors.experienceYears && (
-            <div className="text-danger">{errors.experienceYears}</div>
+          {validStates.password && (
+            <div className="text-success">Password valida!</div>
           )}
         </div>
 
@@ -136,6 +136,9 @@ const RegistrationForm = () => {
           ></textarea>
           {errors.description && (
             <div className="text-danger">{errors.description}</div>
+          )}
+          {validStates.description && (
+            <div className="text-success">Descrizione valida!</div>
           )}
         </div>
 
